@@ -1,32 +1,72 @@
 package com.BudgetWise.demo.model;
-import java.util.ArrayList;
-import java.util.List;
+
+import com.BudgetWise.demo.database.DatabaseManager;
+
+import java.sql.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class AuthService {
-    private List<User> database = new ArrayList<>(); // Temporary storage [cite: 85]
 
-    // User Story #1: Sign-Up
+    // User Story #1: Sign-Up — now persists to the DB
     public String signUp(String name, String email, String pass, String confirmPass) {
         if (!pass.equals(confirmPass)) {
-            return "Error: Passwords do not match."; //
+            return "Error: Passwords do not match.";
         }
         if (pass.length() < 8) {
-            return "Error: Password must be at least 8 characters."; // [cite: 93]
+            return "Error: Password must be at least 8 characters.";
         }
 
-        User newUser = new User(name, email, pass);
-        database.add(newUser);
-        return "Account created successfully for " + name; // [cite: 81]
+        // Check if email already exists
+        String checkSql = "SELECT id FROM users WHERE email = ?";
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(checkSql)) {
+            ps.setString(1, email);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return "Error: Email already registered.";
+            }
+        } catch (SQLException e) {
+            return "Error: Database error — " + e.getMessage();
+        }
+
+        // Insert the new user
+        String insertSql = "INSERT INTO users (fullName, email, password, createdAt) VALUES (?, ?, ?, ?)";
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(insertSql)) {
+            ps.setString(1, name);
+            ps.setString(2, email);
+            ps.setString(3, pass);
+            ps.setString(4, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+            ps.executeUpdate();
+            System.out.println("[DB] User registered: " + name);
+        } catch (SQLException e) {
+            return "Error: Database error — " + e.getMessage();
+        }
+
+        return "Account created successfully for " + name;
     }
 
-    // User Story #2: Login
+    // User Story #2: Login — now reads from the DB
     public User login(String email, String pass) {
-        for (User user : database) {
-            if (user.getEmail().equalsIgnoreCase(email) && user.getPassword().equals(pass)) {
-                return user; // Successful authentication [cite: 103]
+        String sql = "SELECT id, fullName, email, password FROM users WHERE email = ? AND password = ?";
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email);
+            ps.setString(2, pass);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return new User(
+                        rs.getInt("id"),
+                        rs.getString("fullName"),
+                        rs.getString("email"),
+                        rs.getString("password")
+                );
             }
+        } catch (SQLException e) {
+            System.err.println("[DB] Login error: " + e.getMessage());
         }
-        System.out.println("Error: Invalid email or password. Please try again."); // [cite: 107]
+        System.out.println("Error: Invalid email or password. Please try again.");
         return null;
     }
 }

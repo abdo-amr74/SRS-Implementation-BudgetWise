@@ -1,9 +1,13 @@
 package com.BudgetWise.demo.model;
 
+import com.BudgetWise.demo.database.DatabaseManager;
 import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
+        // Initialize the database tables before anything else
+        DatabaseManager.initializeDatabase();
+
         AuthService auth = new AuthService();
         Scanner sc = new Scanner(System.in);
         User currentUser = null;
@@ -20,7 +24,7 @@ public class Main {
                 System.out.println("4. Add Transaction");
                 System.out.println("5. Logout");
 
-                // 🔥 NEW FEATURES
+                //NEW FEATURES
                 System.out.println("6. Add Financial Goal");
                 System.out.println("7. View My Goals");
                 System.out.println("8. Dashboard");
@@ -36,7 +40,7 @@ public class Main {
                 System.out.print("Email: "); String email = sc.nextLine();
                 System.out.print("Password: "); String p1 = sc.nextLine();
                 System.out.print("Confirm Password: "); String p2 = sc.nextLine();
-                String result = auth.signUp(name, email, p1, p2); // modified by
+                String result = auth.signUp(name, email, p1, p2); 
                 System.out.println(result);
 
 
@@ -81,7 +85,8 @@ public class Main {
                 String cat = sc.nextLine();
 
                 try {
-                    Transaction t = new Transaction(type, amt, cat);
+                    Transaction t = new Transaction(currentUser.getUserId(), type, amt, cat);
+                    t.save();
 
                     currentUser.updateBalance(amt, type);
 
@@ -97,22 +102,18 @@ public class Main {
                 currentUser = null;
                 System.out.println("Logged out.");
 
-            // 6. ADD FINANCIAL GOAL (added by momo)
+            // 6. ADD FINANCIAL GOAL 
             } else if (choice.equals("6") && currentUser != null) {
                 try {
                     System.out.print("Goal Name: ");
                     String name = sc.nextLine();
-
                     System.out.print("Target Amount: ");
                     double target = sc.nextDouble();
-
                     System.out.print("Initial Contribution: ");
                     double init = sc.nextDouble();
                     sc.nextLine();
-
                     System.out.print("Deadline (YYYY-MM-DD): ");
                     String d = sc.nextLine();
-
                     FinancialGoal goal = new FinancialGoal(
                             currentUser.getUserId(),
                             name,
@@ -122,8 +123,7 @@ public class Main {
                     );
 
                     goal.save();
-
-                    // Notification (added by momo)
+                    // Notification 
                     Notification.send(currentUser.getUserId(),
                             "New goal created: " + name,
                             "Goal",
@@ -135,7 +135,7 @@ public class Main {
                     System.out.println("Error: " + e.getMessage());
                 }
 
-            // 7. VIEW GOALS (added by momo)
+            // 7. VIEW GOALS
             } else if (choice.equals("7") && currentUser != null) {
                 var goals = FinancialGoal.loadForUser(currentUser.getUserId());
 
@@ -145,7 +145,7 @@ public class Main {
                     goals.forEach(g -> System.out.println(g));
                 }
 
-            // 8. DASHBOARD (added by momo)
+            // 8. DASHBOARD 
             } else if (choice.equals("8") && currentUser != null) {
                 Dashboard d = new Dashboard(
                         currentUser.getUserId(),
@@ -155,7 +155,7 @@ public class Main {
                 d.load();
                 d.display();
 
-            // 9. NOTIFICATIONS (added by momo)
+            // 9. NOTIFICATIONS 
             } else if (choice.equals("9") && currentUser != null) {
                 var list = Notification.fetchForUser(currentUser.getUserId());
 

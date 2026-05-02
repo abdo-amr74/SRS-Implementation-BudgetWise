@@ -12,35 +12,35 @@ import java.util.List;
  * US 6 — Financial Goals
  *
  * Sequence Diagram 6 methods:
- *   initialize()             → constructor
- *   addContribution()        → adds money toward goal, updates DB
- *   calculateMonthlySaving() → how much/month needed
- *   updateProgress()         → recalculates % done
- *   save()                   → INSERT or UPDATE in goals table
+ * initialize() → constructor
+ * addContribution() → adds money toward goal, updates DB
+ * calculateMonthlySaving() → how much/month needed
+ * updateProgress() → recalculates % done
+ * save() → INSERT or UPDATE in goals table
  *
  * DB table used (from DatabaseManager):
- *   goals (id, userId, name, targetAmount, currentAmount, deadline, status)
+ * goals (id, userId, name, targetAmount, currentAmount, deadline, status)
  */
 public class FinancialGoal {
 
-    private int       goalId;          // DB primary key (0 = not yet saved)
-    private int       userId;          // FK → users.id
-    private String    name;
-    private double    targetAmount;
-    private double    currentAmount;
+    private int goalId; // DB primary key (0 = not yet saved)
+    private int userId; // FK → users.id
+    private String name;
+    private double targetAmount;
+    private double currentAmount;
     private LocalDate deadline;
-    private String    status;          // "active" | "completed"
-    private double    progressPercent; // 0.0 – 100.0  (computed, not stored)
+    private String status; // "active" | "completed"
+    private double progressPercent; // 0.0 – 100.0 (computed, not stored)
 
     public FinancialGoal(int userId, String name, double targetAmount,
-                         LocalDate deadline, double initialContribution) {
-        this.goalId        = 0; // assigned after save()
-        this.userId        = userId;
-        this.name          = name;
-        this.targetAmount  = targetAmount;
+            LocalDate deadline, double initialContribution) {
+        this.goalId = 0; // assigned after save()
+        this.userId = userId;
+        this.name = name;
+        this.targetAmount = targetAmount;
         this.currentAmount = 0.0;
-        this.deadline      = deadline;
-        this.status        = "active";
+        this.deadline = deadline;
+        this.status = "active";
 
         // Initial contribution provided
         if (initialContribution > 0) {
@@ -51,14 +51,14 @@ public class FinancialGoal {
 
     /** Private constructor used when loading rows from the DB. */
     private FinancialGoal(int goalId, int userId, String name, double targetAmount,
-                          double currentAmount, LocalDate deadline, String status) {
-        this.goalId        = goalId;
-        this.userId        = userId;
-        this.name          = name;
-        this.targetAmount  = targetAmount;
+            double currentAmount, LocalDate deadline, String status) {
+        this.goalId = goalId;
+        this.userId = userId;
+        this.name = name;
+        this.targetAmount = targetAmount;
         this.currentAmount = currentAmount;
-        this.deadline      = deadline;
-        this.status        = status;
+        this.deadline = deadline;
+        this.status = status;
         updateProgress();
     }
 
@@ -86,9 +86,11 @@ public class FinancialGoal {
      */
     public double calculateMonthlySaving() {
         double remaining = targetAmount - currentAmount;
-        if (remaining <= 0) return 0.0;
+        if (remaining <= 0)
+            return 0.0;
         long monthsLeft = ChronoUnit.MONTHS.between(LocalDate.now(), deadline);
-        if (monthsLeft <= 0) return remaining;
+        if (monthsLeft <= 0)
+            return remaining;
         return remaining / monthsLeft;
     }
 
@@ -110,11 +112,11 @@ public class FinancialGoal {
      */
     public void save() {
         String sql = "INSERT INTO goals (userId, name, targetAmount, currentAmount, deadline, status) "
-                   + "VALUES (?, ?, ?, ?, ?, ?)";
+                + "VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            ps.setInt   (1, userId);
+            ps.setInt(1, userId);
             ps.setString(2, name);
             ps.setDouble(3, targetAmount);
             ps.setDouble(4, currentAmount);
@@ -123,7 +125,8 @@ public class FinancialGoal {
             ps.executeUpdate();
 
             ResultSet keys = ps.getGeneratedKeys();
-            if (keys.next()) this.goalId = keys.getInt(1);
+            if (keys.next())
+                this.goalId = keys.getInt(1);
 
             System.out.println("[DB] Goal saved: " + name + " | id=" + goalId);
 
@@ -134,20 +137,23 @@ public class FinancialGoal {
 
     /** Updates currentAmount and status for an existing goal row (UPDATE). */
     private void updateInDB() {
-        if (goalId == 0) { save(); return; }
+        if (goalId == 0) {
+            save();
+            return;
+        }
         String sql = "UPDATE goals SET currentAmount=?, status=? WHERE id=?";
         try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setDouble(1, currentAmount);
             ps.setString(2, status);
-            ps.setInt   (3, goalId);
+            ps.setInt(3, goalId);
             ps.executeUpdate();
         } catch (SQLException e) {
             System.err.println("[DB] Error updating goal: " + e.getMessage());
         }
     }
 
-    // ── Static DB Queries ─────────────────────────────────────────────────────
+    // Static DB Queries
 
     /**
      * Loads all goals for a given user from the database.
@@ -155,21 +161,20 @@ public class FinancialGoal {
     public static List<FinancialGoal> loadForUser(int userId) {
         List<FinancialGoal> list = new ArrayList<>();
         String sql = "SELECT id, userId, name, targetAmount, currentAmount, deadline, status "
-                   + "FROM goals WHERE userId=?";
+                + "FROM goals WHERE userId=?";
         try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 list.add(new FinancialGoal(
-                        rs.getInt   ("id"),
-                        rs.getInt   ("userId"),
+                        rs.getInt("id"),
+                        rs.getInt("userId"),
                         rs.getString("name"),
                         rs.getDouble("targetAmount"),
                         rs.getDouble("currentAmount"),
                         LocalDate.parse(rs.getString("deadline")),
-                        rs.getString("status")
-                ));
+                        rs.getString("status")));
             }
         } catch (SQLException e) {
             System.err.println("[DB] Error loading goals: " + e.getMessage());
@@ -177,30 +182,52 @@ public class FinancialGoal {
         return list;
     }
 
-    // ── Display ───────────────────────────────────────────────────────────────
+    // Display
     @Override
     public String toString() {
         return String.format(
-            "  [Goal #%d] %s%n" +
-            "    Progress : %.1f%% (%.2f / %.2f EGP)%n" +
-            "    Deadline : %s%n" +
-            "    Monthly  : %.2f EGP/month needed%n" +
-            "    Status   : %s",
-            goalId, name,
-            progressPercent, currentAmount, targetAmount,
-            deadline,
-            calculateMonthlySaving(),
-            status
-        );
+                "  [Goal #%d] %s%n" +
+                        "    Progress : %.1f%% (%.2f / %.2f EGP)%n" +
+                        "    Deadline : %s%n" +
+                        "    Monthly  : %.2f EGP/month needed%n" +
+                        "    Status   : %s",
+                goalId, name,
+                progressPercent, currentAmount, targetAmount,
+                deadline,
+                calculateMonthlySaving(),
+                status);
     }
 
-    // ── Getters ───────────────────────────────────────────────────────────────
-    public int       getGoalId()          { return goalId; }
-    public int       getUserId()          { return userId; }
-    public String    getName()            { return name; }
-    public double    getTargetAmount()    { return targetAmount; }
-    public double    getCurrentAmount()   { return currentAmount; }
-    public LocalDate getDeadline()        { return deadline; }
-    public String    getStatus()          { return status; }
-    public double    getProgressPercent() { return progressPercent; }
+    // Getters
+    public int getGoalId() {
+        return goalId;
+    }
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public double getTargetAmount() {
+        return targetAmount;
+    }
+
+    public double getCurrentAmount() {
+        return currentAmount;
+    }
+
+    public LocalDate getDeadline() {
+        return deadline;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public double getProgressPercent() {
+        return progressPercent;
+    }
 }

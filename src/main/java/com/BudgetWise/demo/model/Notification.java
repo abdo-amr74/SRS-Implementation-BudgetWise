@@ -12,39 +12,39 @@ import java.util.List;
  * US 11 — Notification System
  *
  * Sequence Diagram 11 methods:
- *   send()         → INSERT new notification into DB
- *   markAsRead()   → UPDATE isRead=1 in DB
- *   fetchForUser() → SELECT all notifications for a user
+ * send() → INSERT new notification into DB
+ * markAsRead() → UPDATE isRead=1 in DB
+ * fetchForUser() → SELECT all notifications for a user
  *
  * DB table used (from DatabaseManager):
- *   notifications (id, userId, type, message, isRead, createdAt)
+ * notifications (id, userId, type, message, isRead, createdAt)
  */
 public class Notification {
 
     private static final DateTimeFormatter FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    // ── Fields ────────────────────────────────────────────────────────────────
-    private int           notificationId;
-    private int           userId;
-    private String        message;
-    private boolean       isRead;
+    // Fields
+    private int notificationId;
+    private int userId;
+    private String message;
+    private boolean isRead;
     private LocalDateTime timestamp;
-    private String        sourceType;   // stored in DB "type" column: "Goal"|"Budget"|"System"
-    private int           sourceId;     // not in DB schema — encoded into message if needed
+    private String sourceType; // stored in DB "type" column: "Goal"|"Budget"|"System"
+    private int sourceId; // not in DB schema — encoded into message if needed
 
-    // ── Private constructor (used when loading from DB) ───────────────────────
+    // Private constructor (used when loading from DB)
     private Notification(int notificationId, int userId, String sourceType,
-                         String message, boolean isRead, LocalDateTime timestamp) {
+            String message, boolean isRead, LocalDateTime timestamp) {
         this.notificationId = notificationId;
-        this.userId         = userId;
-        this.sourceType     = sourceType;
-        this.sourceId       = 0;
-        this.message        = message;
-        this.isRead         = isRead;
-        this.timestamp      = timestamp;
+        this.userId = userId;
+        this.sourceType = sourceType;
+        this.sourceId = 0;
+        this.message = message;
+        this.isRead = isRead;
+        this.timestamp = timestamp;
     }
 
-    // ── Core Methods (from Sequence Diagram 11) ───────────────────────────────
+    // Core Methods (from Sequence Diagram 11)
 
     /**
      * Creates and persists a new notification for a user.
@@ -58,17 +58,18 @@ public class Notification {
     public static Notification send(int userId, String message, String sourceType, int sourceId) {
         String createdAt = LocalDateTime.now().format(FMT);
         String sql = "INSERT INTO notifications (userId, type, message, isRead, createdAt) "
-                   + "VALUES (?, ?, ?, 0, ?)";
+                + "VALUES (?, ?, ?, 0, ?)";
         int generatedId = 0;
         try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setInt   (1, userId);
+                PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, userId);
             ps.setString(2, sourceType);
             ps.setString(3, message);
             ps.setString(4, createdAt);
             ps.executeUpdate();
             ResultSet keys = ps.getGeneratedKeys();
-            if (keys.next()) generatedId = keys.getInt(1);
+            if (keys.next())
+                generatedId = keys.getInt(1);
         } catch (SQLException e) {
             System.err.println("[DB] Error saving notification: " + e.getMessage());
         }
@@ -93,7 +94,7 @@ public class Notification {
         this.isRead = true;
         String sql = "UPDATE notifications SET isRead=1 WHERE id=?";
         try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, notificationId);
             ps.executeUpdate();
             System.out.println("[Notification #" + notificationId + "] Marked as read.");
@@ -109,20 +110,19 @@ public class Notification {
     public static List<Notification> fetchForUser(int userId) {
         List<Notification> list = new ArrayList<>();
         String sql = "SELECT id, userId, type, message, isRead, createdAt "
-                   + "FROM notifications WHERE userId=? ORDER BY createdAt DESC";
+                + "FROM notifications WHERE userId=? ORDER BY createdAt DESC";
         try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 list.add(new Notification(
-                        rs.getInt   ("id"),
-                        rs.getInt   ("userId"),
+                        rs.getInt("id"),
+                        rs.getInt("userId"),
                         rs.getString("type"),
                         rs.getString("message"),
-                        rs.getInt   ("isRead") == 1,
-                        LocalDateTime.parse(rs.getString("createdAt"), FMT)
-                ));
+                        rs.getInt("isRead") == 1,
+                        LocalDateTime.parse(rs.getString("createdAt"), FMT)));
             }
         } catch (SQLException e) {
             System.err.println("[DB] Error fetching notifications: " + e.getMessage());
@@ -134,10 +134,11 @@ public class Notification {
     public static int countUnread(int userId) {
         String sql = "SELECT COUNT(*) FROM notifications WHERE userId=? AND isRead=0";
         try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, userId);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) return rs.getInt(1);
+            if (rs.next())
+                return rs.getInt(1);
         } catch (SQLException e) {
             System.err.println("[DB] Error counting notifications: " + e.getMessage());
         }
@@ -152,20 +153,40 @@ public class Notification {
         return sourceType + (sourceId > 0 ? " #" + sourceId : "");
     }
 
-    // ── Display ───────────────────────────────────────────────────────────────
+    // Display
     @Override
     public String toString() {
         String statusLabel = isRead ? "[READ]  " : "[UNREAD]";
-        String time        = timestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+        String time = timestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
         return String.format("  #%d %s %s  (%s)", notificationId, statusLabel, message, time);
     }
 
-    // ── Getters ───────────────────────────────────────────────────────────────
-    public int           getNotificationId() { return notificationId; }
-    public int           getUserId()         { return userId; }
-    public String        getMessage()        { return message; }
-    public boolean       isRead()            { return isRead; }
-    public LocalDateTime getTimestamp()      { return timestamp; }
-    public String        getSourceType()     { return sourceType; }
-    public int           getSourceId()       { return sourceId; }
+    // Getters
+    public int getNotificationId() {
+        return notificationId;
+    }
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public boolean isRead() {
+        return isRead;
+    }
+
+    public LocalDateTime getTimestamp() {
+        return timestamp;
+    }
+
+    public String getSourceType() {
+        return sourceType;
+    }
+
+    public int getSourceId() {
+        return sourceId;
+    }
 }
