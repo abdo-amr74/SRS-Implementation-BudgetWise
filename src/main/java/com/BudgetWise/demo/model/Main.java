@@ -19,7 +19,14 @@ public class Main {
                 System.out.println("3. Exit");
                 System.out.println("4. Add Transaction");
                 System.out.println("5. Logout");
+
+                // 🔥 NEW FEATURES
+                System.out.println("6. Add Financial Goal");
+                System.out.println("7. View My Goals");
+                System.out.println("8. Dashboard");
+                System.out.println("9. Notifications");
             }
+
             System.out.print("Choose an option: ");
             String choice = sc.nextLine();
 
@@ -29,54 +36,151 @@ public class Main {
                 System.out.print("Email: "); String email = sc.nextLine();
                 System.out.print("Password: "); String p1 = sc.nextLine();
                 System.out.print("Confirm Password: "); String p2 = sc.nextLine();
-                System.out.println(auth.signUp(name, email, p1, p2));
+                String result = auth.signUp(name, email, p1, p2); // modified by
+                System.out.println(result);
 
-                // 2. LOGIN
+
+                if (result.toLowerCase().contains("success")) {
+                    currentUser = auth.login(email, p1);
+
+                if (currentUser != null) {
+                    System.out.println("Welcome " + currentUser.getFullName() + "!");
+
+        
+                Dashboard d = new Dashboard(
+                    currentUser.getUserId(),
+                    currentUser.getFullName()
+                );
+
+                d.load();
+                d.display();
+                }
+                }
+
+            // 2. LOGIN
             } else if (choice.equals("2")) {
                 System.out.print("Email: "); String lemail = sc.nextLine();
                 System.out.print("Pass: "); String lpass = sc.nextLine();
                 currentUser = auth.login(lemail, lpass);
                 if (currentUser != null) System.out.println("Login Successful!");
 
-                // 3. EXIT
+            // 3. EXIT
             } else if (choice.equals("3")) {
                 break;
 
-                // 4. ADD TRANSACTION
-                // Inside Choice "4" (Add Transaction)
+            // 4. ADD TRANSACTION
             } else if (choice.equals("4") && currentUser != null) {
-                // 1. Ask for Type First
                 System.out.print("Transaction Type (Income/Expense): ");
                 String type = sc.nextLine();
 
-                // 2. Ask for Amount
                 System.out.print("Amount: ");
                 double amt = sc.nextDouble();
-                sc.nextLine(); // Clear buffer
+                sc.nextLine();
 
-                // 3. Ask for Category
                 System.out.print("Category: ");
                 String cat = sc.nextLine();
 
                 try {
-                    // Create the transaction
                     Transaction t = new Transaction(type, amt, cat);
 
-                    // Update the user's actual balance
                     currentUser.updateBalance(amt, type);
 
                     System.out.println("Saved: " + t.toString());
                     System.out.println("New Balance: " + currentUser.getBalance() + " EGP");
+
                 } catch (Exception e) {
                     System.out.println("Error: " + e.getMessage());
                 }
 
-                // 5. LOGOUT
+            // 5. LOGOUT
             } else if (choice.equals("5")) {
                 currentUser = null;
                 System.out.println("Logged out.");
+
+            // 6. ADD FINANCIAL GOAL (added by momo)
+            } else if (choice.equals("6") && currentUser != null) {
+                try {
+                    System.out.print("Goal Name: ");
+                    String name = sc.nextLine();
+
+                    System.out.print("Target Amount: ");
+                    double target = sc.nextDouble();
+
+                    System.out.print("Initial Contribution: ");
+                    double init = sc.nextDouble();
+                    sc.nextLine();
+
+                    System.out.print("Deadline (YYYY-MM-DD): ");
+                    String d = sc.nextLine();
+
+                    FinancialGoal goal = new FinancialGoal(
+                            currentUser.getUserId(),
+                            name,
+                            target,
+                            java.time.LocalDate.parse(d),
+                            init
+                    );
+
+                    goal.save();
+
+                    // Notification (added by momo)
+                    Notification.send(currentUser.getUserId(),
+                            "New goal created: " + name,
+                            "Goal",
+                            goal.getGoalId());
+
+                    System.out.println("Goal Created Successfully!");
+
+                } catch (Exception e) {
+                    System.out.println("Error: " + e.getMessage());
+                }
+
+            // 7. VIEW GOALS (added by momo)
+            } else if (choice.equals("7") && currentUser != null) {
+                var goals = FinancialGoal.loadForUser(currentUser.getUserId());
+
+                if (goals.isEmpty()) {
+                    System.out.println("No goals found.");
+                } else {
+                    goals.forEach(g -> System.out.println(g));
+                }
+
+            // 8. DASHBOARD (added by momo)
+            } else if (choice.equals("8") && currentUser != null) {
+                Dashboard d = new Dashboard(
+                        currentUser.getUserId(),
+                        currentUser.getFullName()
+                );
+
+                d.load();
+                d.display();
+
+            // 9. NOTIFICATIONS (added by momo)
+            } else if (choice.equals("9") && currentUser != null) {
+                var list = Notification.fetchForUser(currentUser.getUserId());
+
+                if (list.isEmpty()) {
+                    System.out.println("No notifications.");
+                } else {
+                    for (Notification n : list) {
+                        System.out.println(n);
+                    }
+
+                    System.out.print("Mark all as read? (y/n): ");
+                    String ans = sc.nextLine();
+
+                    if (ans.equalsIgnoreCase("y")) {
+                        for (Notification n : list) {
+                            if (!n.isRead()) n.markAsRead();
+                        }
+                    }
+                }
+
+            } else {
+                System.out.println("Invalid option.");
             }
         }
+
         System.out.println("Program Closed.");
         sc.close();
     }

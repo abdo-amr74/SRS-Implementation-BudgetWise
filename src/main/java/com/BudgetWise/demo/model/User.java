@@ -1,6 +1,7 @@
 package com.BudgetWise.demo.model;
 
 public class User {
+    private int userId; // Added userId field for DB reference
     private String fullName;
     private String email;
     private String password;
@@ -13,7 +14,16 @@ public class User {
         this.balance = 0.0; // Starts at zero
     }
 
+    public User(int userId, String fullName, String email, String password) {
+        this.userId = userId;
+        this.fullName = fullName;
+        this.email = email;
+        this.password = password;
+        this.balance = 0.0; // Starts at zero
+    }
+
     // Getters and Setters
+    public int getUserId() { return userId; }
     public String getFullName() { return fullName; }
     public String getEmail() { return email; }
     public String getPassword() { return password; }
