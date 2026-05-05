@@ -12,6 +12,7 @@ public class Main {
         AuthService auth = new AuthService();
         Scanner sc = new Scanner(System.in);
         User currentUser = null;
+
         while (true) {
             System.out.println("\n=== BUDGET WISE SYSTEM ===");
             if (currentUser == null) {
@@ -29,11 +30,12 @@ public class Main {
                 System.out.println("9. Notifications");
                 System.out.println("10. Create Budget");
                 System.out.println("11. View/Edit Budgets");
-                System.out.println("12. View Reports");      
+                System.out.println("12. View Reports");
                 System.out.println("13. Edit Transaction");
                 System.out.println("14. Delete Transaction");
-                System.out.println("15. Export Report");      
-                System.out.println("16. Sync Bank Account"); 
+                System.out.println("15. Export Report");
+                System.out.println("17. Edit Profile & Settings");
+                System.out.println("18. Transaction History");
             }
             System.out.print("Choose an option: ");
             String choice = sc.nextLine();
@@ -52,17 +54,9 @@ public class Main {
                 System.out.println(result);
                 if (result.toLowerCase().contains("success")) {
                     currentUser = auth.login(email, p1);
-                    if (currentUser != null) {
-                        System.out.println("Welcome " + currentUser.getFullName() + "!");
-                        Dashboard d = new Dashboard(
-                                currentUser.getUserId(),
-                                currentUser.getFullName());
-                        d.load();
-                        d.display();
-                    }
                 }
 
-            // 2. LOGIN
+                // 2. LOGIN
             } else if (choice.equals("2")) {
                 System.out.print("Email: ");
                 String lemail = sc.nextLine();
@@ -72,308 +66,192 @@ public class Main {
                 if (currentUser != null)
                     System.out.println("Login Successful!");
 
-            // 3. EXIT
+                // 3. EXIT
             } else if (choice.equals("3")) {
                 break;
 
-            // 4. ADD TRANSACTION
+                // 4. ADD TRANSACTION
             } else if (choice.equals("4") && currentUser != null) {
-                System.out.print("Transaction Type (Income/Expense): ");
-                String type = sc.nextLine();
-                System.out.print("Amount: ");
-                double amt = sc.nextDouble();
-                sc.nextLine();
-                System.out.print("Category: ");
-                String cat = sc.nextLine();
                 try {
+                    System.out.print("Type (Income/Expense): ");
+                    String type = sc.nextLine();
+                    System.out.print("Amount: ");
+                    double amt = Double.parseDouble(sc.nextLine());
+                    System.out.print("Category: ");
+                    String cat = sc.nextLine();
                     Transaction t = new Transaction(currentUser.getUserId(), type, amt, cat);
                     t.save();
                     currentUser.updateBalance(amt, type);
-                    System.out.println("Saved: " + t.toString());
-                    System.out.println("New Balance: " + currentUser.getNetBalance() + " EGP");
+                    System.out.println("Saved! New Balance: " + currentUser.getNetBalance() + " EGP");
                 } catch (Exception e) {
                     System.out.println("Error: " + e.getMessage());
                 }
 
-            // 5. LOGOUT
+                // 5. LOGOUT
             } else if (choice.equals("5")) {
                 currentUser = null;
                 System.out.println("Logged out.");
 
-            // 6. ADD FINANCIAL GOAL
+                // 6. ADD FINANCIAL GOAL
             } else if (choice.equals("6") && currentUser != null) {
                 try {
                     System.out.print("Goal Name: ");
-                    String name = sc.nextLine();
-                    System.out.print("Target Amount: ");
-                    double target = sc.nextDouble();
+                    String gname = sc.nextLine();
+                    System.out.print("Target: ");
+                    double target = Double.parseDouble(sc.nextLine());
                     System.out.print("Initial Contribution: ");
-                    double init = sc.nextDouble();
-                    sc.nextLine();
+                    double init = Double.parseDouble(sc.nextLine());
                     System.out.print("Deadline (YYYY-MM-DD): ");
-                    String d = sc.nextLine();
-                    FinancialGoal goal = new FinancialGoal(
-                            currentUser.getUserId(),
-                            name,
-                            target,
-                            java.time.LocalDate.parse(d),
-                            init);
+                    String dead = sc.nextLine();
+                    FinancialGoal goal = new FinancialGoal(currentUser.getUserId(), gname, target,
+                            LocalDate.parse(dead), init);
                     goal.save();
-                    Notification.send(currentUser.getUserId(),
-                            "New goal created: " + name,
-                            "Goal",
-                            goal.getGoalId());
-                    System.out.println("Goal Created Successfully!");
+                    System.out.println("Goal Created!");
                 } catch (Exception e) {
                     System.out.println("Error: " + e.getMessage());
                 }
 
-            // 7. VIEW GOALS
+                // 7. VIEW GOALS
             } else if (choice.equals("7") && currentUser != null) {
-                var goals = FinancialGoal.loadForUser(currentUser.getUserId());
-                if (goals.isEmpty()) {
+                List<FinancialGoal> goals = FinancialGoal.loadForUser(currentUser.getUserId());
+                if (goals.isEmpty())
                     System.out.println("No goals found.");
-                } else {
-                    goals.forEach(g -> System.out.println(g));
-                }
+                else
+                    goals.forEach(System.out::println);
 
-            // 8. DASHBOARD
+                // 8. DASHBOARD
             } else if (choice.equals("8") && currentUser != null) {
-                Dashboard d = new Dashboard(
-                        currentUser.getUserId(),
-                        currentUser.getFullName());
+                Dashboard d = new Dashboard(currentUser.getUserId(), currentUser.getFullName());
                 d.load();
                 d.display();
 
-            // 9. NOTIFICATIONS
+                // 9. NOTIFICATIONS
             } else if (choice.equals("9") && currentUser != null) {
-                var list = Notification.fetchForUser(currentUser.getUserId());
-                if (list.isEmpty()) {
+                List<Notification> list = Notification.fetchForUser(currentUser.getUserId());
+                if (list.isEmpty())
                     System.out.println("No notifications.");
-                } else {
-                    for (Notification n : list) {
-                        System.out.println(n);
-                    }
+                else {
+                    list.forEach(System.out::println);
                     System.out.print("Mark all as read? (y/n): ");
-                    String ans = sc.nextLine();
-                    if (ans.equalsIgnoreCase("y")) {
-                        for (Notification n : list) {
+                    if (sc.nextLine().equalsIgnoreCase("y")) {
+                        list.forEach(n -> {
                             if (!n.isRead())
                                 n.markAsRead();
-                        }
+                        });
                     }
                 }
 
-            // 10. CREATE BUDGET
+                // 10. CREATE BUDGET
             } else if (choice.equals("10") && currentUser != null) {
                 try {
-                    System.out.print("Budget Category (e.g., Food & Dining, Transport): ");
-                    String budgetName = sc.nextLine();
-                    System.out.print("Budget Amount (EGP): ");
-                    double budgetAmount = sc.nextDouble();
-                    sc.nextLine();
-                    System.out.print("Start Date (YYYY-MM-DD) [Enter for 1st of current month]: ");
-                    String startInput = sc.nextLine().trim();
-                    LocalDate startDate = startInput.isEmpty()
-                            ? YearMonth.now().atDay(1)
-                            : LocalDate.parse(startInput);
-                    System.out.print("End Date (YYYY-MM-DD) [Enter for end of current month]: ");
-                    String endInput = sc.nextLine().trim();
-                    LocalDate endDate = endInput.isEmpty()
-                            ? YearMonth.now().atEndOfMonth()
-                            : LocalDate.parse(endInput);
-                    System.out.print("Alert Threshold % (e.g., 90 for 90%): ");
-                    double threshold = sc.nextDouble() / 100.0;
-                    sc.nextLine();
-                    Budget budget = new Budget(
-                            currentUser.getUserId(),
-                            budgetName,
-                            budgetAmount,
-                            startDate,
-                            endDate,
-                            threshold);
-                    boolean created = budget.create();
-                    if (created) {
-                        System.out.println("Budget created successfully!");
-                        System.out.println(budget);
-                    }
+                    System.out.print("Category: ");
+                    String bcat = sc.nextLine();
+                    System.out.print("Limit Amount: ");
+                    double lim = Double.parseDouble(sc.nextLine());
+                    System.out.print("Alert Threshold % (e.g. 90): ");
+                    double thr = Double.parseDouble(sc.nextLine()) / 100.0;
+                    Budget b = new Budget(currentUser.getUserId(), bcat, lim, YearMonth.now().atDay(1),
+                            YearMonth.now().atEndOfMonth(), thr);
+                    if (b.create())
+                        System.out.println("Budget Created Successfully!");
                 } catch (Exception e) {
                     System.out.println("Error: " + e.getMessage());
-                    sc.nextLine();
                 }
 
-            // 11. VIEW/EDIT BUDGETS
+                // 11. VIEW/EDIT BUDGETS
             } else if (choice.equals("11") && currentUser != null) {
                 List<Budget> budgets = Budget.loadForUser(currentUser.getUserId());
-                if (budgets.isEmpty()) {
-                    System.out.println("No budgets found. Create one first (option 10).");
-                } else {
-                    System.out.println("\n--- Your Budgets ---");
-                    for (Budget b : budgets) {
-                        System.out.println(b);
-                        System.out.println();
-                    }
-                    System.out.print("Edit a budget? Enter Budget ID (or 0 to cancel): ");
-                    int editId = sc.nextInt();
-                    sc.nextLine();
-                    if (editId > 0) {
-                        Budget toEdit = Budget.findById(editId);
-                        if (toEdit == null || toEdit.getUserId() != currentUser.getUserId()) {
-                            System.out.println("Budget not found.");
-                        } else {
-                            System.out.println("Editing: " + toEdit.getName());
-                            System.out.print("New Category Name [Enter to keep \"" + toEdit.getName() + "\"]: ");
-                            String newName = sc.nextLine().trim();
-                            if (newName.isEmpty()) newName = toEdit.getName();
-                            System.out.print("New Limit Amount [Enter to keep " + toEdit.getLimitAmount() + "]: ");
-                            String newLimitStr = sc.nextLine().trim();
-                            double newLimit = newLimitStr.isEmpty()
-                                    ? toEdit.getLimitAmount()
-                                    : Double.parseDouble(newLimitStr);
-                            System.out.print("New Start Date [Enter to keep " + toEdit.getStartDate() + "]: ");
-                            String newStartStr = sc.nextLine().trim();
-                            LocalDate newStart = newStartStr.isEmpty()
-                                    ? toEdit.getStartDate()
-                                    : LocalDate.parse(newStartStr);
-                            System.out.print("New End Date [Enter to keep " + toEdit.getEndDate() + "]: ");
-                            String newEndStr = sc.nextLine().trim();
-                            LocalDate newEnd = newEndStr.isEmpty()
-                                    ? toEdit.getEndDate()
-                                    : LocalDate.parse(newEndStr);
-                            System.out.print("New Alert Threshold % [Enter to keep "
-                                    + (toEdit.getAlertThreshold() * 100) + "%]: ");
-                            String newThreshStr = sc.nextLine().trim();
-                            double newThresh = newThreshStr.isEmpty()
-                                    ? toEdit.getAlertThreshold()
-                                    : Double.parseDouble(newThreshStr) / 100.0;
-                            toEdit.edit(newName, newLimit, newStart, newEnd, newThresh);
-                            System.out.println("Budget updated!");
-                            System.out.println(toEdit);
-                        }
-                    }
-                }
+                if (budgets.isEmpty())
+                    System.out.println("No budgets found.");
+                else
+                    budgets.forEach(System.out::println);
 
-            // 12. VIEW REPORTS (US8)
+                // 12. VIEW REPORTS
             } else if (choice.equals("12") && currentUser != null) {
-                try {
-                    System.out.println("\n--- Financial Report ---");
-                    System.out.print("Start Date (YYYY-MM-DD) [Enter for 1st of current month]: ");
-                    String rStartInput = sc.nextLine().trim();
-                    LocalDate rStart = rStartInput.isEmpty()
-                            ? YearMonth.now().atDay(1)
-                            : LocalDate.parse(rStartInput);
-                    System.out.print("End Date (YYYY-MM-DD) [Enter for end of current month]: ");
-                    String rEndInput = sc.nextLine().trim();
-                    LocalDate rEnd = rEndInput.isEmpty()
-                            ? YearMonth.now().atEndOfMonth()
-                            : LocalDate.parse(rEndInput);
-                    Report report = new Report(currentUser.getUserId(), rStart, rEnd);
-                    report.generate();
-                    report.display();
-                } catch (Exception e) {
-                    System.out.println("Error: " + e.getMessage());
-                }
+                Report r = new Report(currentUser.getUserId(), YearMonth.now().atDay(1),
+                        YearMonth.now().atEndOfMonth());
+                r.generate();
+                r.display();
 
-            // 13. EDIT TRANSACTION
+                // 13. EDIT TRANSACTION
             } else if (choice.equals("13") && currentUser != null) {
                 try {
                     List<Transaction> txns = Transaction.loadAllForUser(currentUser.getUserId());
-                    if (txns.isEmpty()) {
-                        System.out.println("No transactions found.");
-                    } else {
-                        System.out.println("\n--- Your Transactions ---");
-                        for (Transaction t : txns) {
-                            System.out.println(t.toDetailString());
-                        }
-                        System.out.print("Enter Transaction ID to edit (or 0 to cancel): ");
-                        int txId = sc.nextInt();
-                        sc.nextLine();
-                        if (txId > 0) {
-                            Transaction t = Transaction.loadById(txId);
-                            if (t == null || t.getUserId() != currentUser.getUserId()) {
-                                System.out.println("Transaction not found.");
-                            } else {
-                                System.out.print("New Amount [Enter to keep " + t.getAmount() + "]: ");
-                                String newAmtStr = sc.nextLine().trim();
-                                double newAmt = newAmtStr.isEmpty()
-                                        ? t.getAmount()
-                                        : Double.parseDouble(newAmtStr);
-                                System.out.print("New Category [Enter to keep \"" + t.getCategory() + "\"]: ");
-                                String newCat = sc.nextLine().trim();
-                                if (newCat.isEmpty()) newCat = t.getCategory();
-                                t.edit(newAmt, newCat);
-                            }
-                        }
+                    txns.forEach(t -> System.out.println(t.toDetailString()));
+                    System.out.print("Enter Transaction ID to edit: ");
+                    int id = Integer.parseInt(sc.nextLine());
+                    Transaction t = Transaction.loadById(id);
+                    if (t != null && t.getUserId() == currentUser.getUserId()) {
+                        System.out.print("New Amount: ");
+                        double amt = Double.parseDouble(sc.nextLine());
+                        System.out.print("New Category: ");
+                        String cat = sc.nextLine();
+                        if (t.edit(amt, cat))
+                            System.out.println("Transaction Updated!");
                     }
                 } catch (Exception e) {
                     System.out.println("Error: " + e.getMessage());
-                    sc.nextLine();
                 }
 
-            // 14. DELETE TRANSACTION
+                // 14. DELETE TRANSACTION
             } else if (choice.equals("14") && currentUser != null) {
                 try {
-                    List<Transaction> txns = Transaction.loadAllForUser(currentUser.getUserId());
-                    if (txns.isEmpty()) {
-                        System.out.println("No transactions found.");
-                    } else {
-                        System.out.println("\n--- Your Transactions ---");
-                        for (Transaction t : txns) {
-                            System.out.println(t.toDetailString());
-                        }
-                        System.out.print("Enter Transaction ID to delete (or 0 to cancel): ");
-                        int txId = sc.nextInt();
-                        sc.nextLine();
-                        if (txId > 0) {
-                            Transaction t = Transaction.loadById(txId);
-                            if (t == null || t.getUserId() != currentUser.getUserId()) {
-                                System.out.println("Transaction not found.");
-                            } else {
-                                System.out.print("Are you sure? (y/n): ");
-                                String confirm = sc.nextLine();
-                                if (confirm.equalsIgnoreCase("y")) {
-                                    Transaction.delete(txId);
-                                }
-                            }
-                        }
-                    }
+                    System.out.print("Enter ID to delete: ");
+                    int id = Integer.parseInt(sc.nextLine());
+                    if (Transaction.delete(id))
+                        System.out.println("Deleted Successfully!");
                 } catch (Exception e) {
                     System.out.println("Error: " + e.getMessage());
-                    sc.nextLine();
                 }
 
-            // 15. EXPORT REPORT 
+                // 15. EXPORT REPORT
             } else if (choice.equals("15") && currentUser != null) {
-                try {
-                    System.out.print("Export format (PDF/CSV/Excel): ");
-                    String fmt = sc.nextLine();
-                    ExportReport er = new ExportReport(currentUser.getUserId());
-                    if (er.validateRequest(fmt)) {
-                        er.formatData();
-                        er.download();
-                    }
-                } catch (Exception e) {
-                    System.out.println("Error: " + e.getMessage());
+                ExportReport er = new ExportReport(currentUser.getUserId(), YearMonth.now().atDay(1),
+                        YearMonth.now().atEndOfMonth(), true, true, true);
+                if (er.validateRequest("PDF")) {
+                    er.generate();
+                    er.download();
                 }
 
-            // 16. SYNC BANK ACCOUNT  
-            } else if (choice.equals("16") && currentUser != null) {
-                try {
-                    System.out.print("Bank name: ");
-                    String bank = sc.nextLine();
-                    System.out.print("Access token: ");
-                    String token = sc.nextLine();
-                    BankAccount ba = new BankAccount(
-                            currentUser.getUserId(),
-                            bank,
-                            "http://bank-api.example.com");
-                    ba.syncTransactions(token, currentUser);
-                } catch (Exception e) {
-                    System.out.println("Error: " + e.getMessage());
+                // 16. SYNC BANK ACCOUNT
+
+                // 17. EDIT PROFILE & SETTINGS
+            } else if (choice.equals("17") && currentUser != null) {
+                Userprofile profile = Userprofile.getProfile(currentUser.getUserId());
+                if (profile != null) {
+                    System.out.print("New Name [" + profile.getDisplayName() + "]: ");
+                    String n = sc.nextLine().trim();
+                    if (n.isEmpty())
+                        n = profile.getDisplayName();
+                    System.out.print("New Currency [" + profile.getCurrency() + "]: ");
+                    String c = sc.nextLine().trim();
+                    if (c.isEmpty())
+                        c = profile.getCurrency();
+
+                    new Userprofile(currentUser.getUserId(), n, c).update();
+                    currentUser = auth.login(currentUser.getEmail(), currentUser.getPassword());
                 }
+
+                // 18. TRANSACTION HISTORY
+            } else if (choice.equals("18") && currentUser != null) {
+                System.out.println("\n1. All History\n2. Filter by Category");
+                System.out.print("Choice: ");
+                String sub = sc.nextLine();
+                List<Transaction> hist;
+                if (sub.equals("2")) {
+                    System.out.print("Category: ");
+                    hist = Transaction.loadByCategory(currentUser.getUserId(), sc.nextLine());
+                } else {
+                    hist = Transaction.loadAllForUser(currentUser.getUserId());
+                }
+
+                if (hist.isEmpty())
+                    System.out.println("No records found.");
+                else
+                    hist.forEach(t -> System.out.println(t.toDetailString()));
 
             } else {
-                System.out.println("Invalid option.");
+                System.out.println("Invalid option or not logged in.");
             }
         }
         System.out.println("Program Closed.");

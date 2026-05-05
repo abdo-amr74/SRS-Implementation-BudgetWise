@@ -2,7 +2,6 @@ package com.BudgetWise.demo.database;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -17,18 +16,25 @@ public class DatabaseManager {
                 return connection;
         }
 
-       
-        
         public static void initializeDatabase() {
                 try (Connection conn = getConnection();
                                 Statement stmt = conn.createStatement()) {
 
+                        // Create users table with currency column[cite: 6]
                         stmt.execute("CREATE TABLE IF NOT EXISTS users (" +
                                         "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                                         "fullName TEXT NOT NULL," +
                                         "email TEXT UNIQUE NOT NULL," +
                                         "password TEXT NOT NULL," +
+                                        "currency TEXT DEFAULT 'EGP'," +
                                         "createdAt TEXT NOT NULL)");
+
+                        // MIGRATION: Add currency column if the table already existed[cite: 6]
+                        try {
+                                stmt.execute("ALTER TABLE users ADD COLUMN currency TEXT DEFAULT 'EGP'");
+                        } catch (SQLException e) {
+                                // Column already exists, safe to ignore[cite: 6]
+                        }
 
                         stmt.execute("CREATE TABLE IF NOT EXISTS transactions (" +
                                         "id INTEGER PRIMARY KEY AUTOINCREMENT," +
@@ -87,5 +93,3 @@ public class DatabaseManager {
                 }
         }
 }
-
-
