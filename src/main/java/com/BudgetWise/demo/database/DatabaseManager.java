@@ -2,6 +2,7 @@ package com.BudgetWise.demo.database;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -16,6 +17,8 @@ public class DatabaseManager {
                 return connection;
         }
 
+       
+        
         public static void initializeDatabase() {
                 try (Connection conn = getConnection();
                                 Statement stmt = conn.createStatement()) {
@@ -84,3 +87,5 @@ public class DatabaseManager {
                 }
         }
 }
+
+
