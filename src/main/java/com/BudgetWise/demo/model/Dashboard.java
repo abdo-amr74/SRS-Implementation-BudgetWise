@@ -22,12 +22,20 @@ public class Dashboard {
     private List<String> recentTransactionLines = new ArrayList<>();
     private List<String> budgetWarnings = new ArrayList<>();
 
-    // Constructor
+    /**
+     * Constructor for creating a Dashboard instance.
+     * 
+     * @param userId The ID of the user.
+     * @param userFullName The full name of the user.
+     */
     public Dashboard(int userId, String userFullName) {
         this.userId = userId;
         this.userFullName = userFullName;
     }
 
+    /**
+     * Loads dashboard data including income, expenses, recent transactions, and budget warnings.
+     */
     public void load() {
         System.out.println("\n[Dashboard] Loading data for: " + userFullName);
         filterByCurrentMonth(); // step 4
@@ -74,6 +82,8 @@ public class Dashboard {
     /**
      * Returns summary stats string.
      * (Diagram step 3: getStats())
+     * 
+     * @return A formatted string showing income, expenses, and net balance.
      */
     public String getStats() {
         return String.format(

@@ -81,7 +81,13 @@ public class Notification {
         return n;
     }
 
-    /** Convenience: system notification with no specific source. */
+    /** 
+     * Convenience method: sends a system notification with no specific source. 
+     *
+     * @param userId The user ID.
+     * @param message The notification message.
+     * @return The generated Notification.
+     */
     public static Notification send(int userId, String message) {
         return send(userId, message, "System", 0);
     }
@@ -130,7 +136,12 @@ public class Notification {
         return list;
     }
 
-    /** Counts unread notifications for a user (for badge display). */
+    /** 
+     * Counts unread notifications for a user (for badge display). 
+     *
+     * @param userId The user ID.
+     * @return The count of unread notifications.
+     */
     public static int countUnread(int userId) {
         String sql = "SELECT COUNT(*) FROM notifications WHERE userId=? AND isRead=0";
         try (Connection conn = DatabaseManager.getConnection();
@@ -162,30 +173,59 @@ public class Notification {
     }
 
     // Getters
+
+    /**
+     * Gets the notification ID.
+     * @return The notification ID.
+     */
     public int getNotificationId() {
         return notificationId;
     }
 
+    /**
+     * Gets the user ID.
+     * @return The user ID.
+     */
     public int getUserId() {
         return userId;
     }
 
+    /**
+     * Gets the notification message.
+     * @return The message.
+     */
     public String getMessage() {
         return message;
     }
 
+    /**
+     * Checks if the notification is read.
+     * @return true if read.
+     */
     public boolean isRead() {
         return isRead;
     }
 
+    /**
+     * Gets the timestamp of the notification.
+     * @return The timestamp.
+     */
     public LocalDateTime getTimestamp() {
         return timestamp;
     }
 
+    /**
+     * Gets the source type of the notification.
+     * @return The source type.
+     */
     public String getSourceType() {
         return sourceType;
     }
 
+    /**
+     * Gets the source ID of the notification.
+     * @return The source ID.
+     */
     public int getSourceId() {
         return sourceId;
     }

@@ -33,6 +33,16 @@ public class ExportReport {
     private Report report;
     private List<Transaction> transactions;
 
+    /**
+     * Constructor to create an ExportReport request.
+     * 
+     * @param userId The ID of the user requesting the report.
+     * @param startDate The start date of the reporting period.
+     * @param endDate The end date of the reporting period.
+     * @param includeTransactions Whether to include transaction data.
+     * @param includeBudgets Whether to include budget data.
+     * @param includeGoals Whether to include financial goals data.
+     */
     public ExportReport(int userId, LocalDate startDate, LocalDate endDate,
                         boolean includeTransactions, boolean includeBudgets,
                         boolean includeGoals) {
@@ -44,7 +54,12 @@ public class ExportReport {
         this.includeGoals = includeGoals;
     }
 
-    // SD12 step 3: validateRequest() — validates format and data availability
+    /**
+     * SD12 step 3: validateRequest() — validates format and data availability.
+     * 
+     * @param format The requested export format (e.g., PDF, CSV, Excel).
+     * @return true if valid, false otherwise.
+     */
     public boolean validateRequest(String format) {
         if (!format.equalsIgnoreCase("PDF") &&
             !format.equalsIgnoreCase("CSV") &&
@@ -61,7 +76,10 @@ public class ExportReport {
         return true;
     }
 
-    // SD12 steps 4–7: generate() → Report.generate() → fetchTransactions(period) → reportData
+    /**
+     * SD12 steps 4–7: generate() → Report.generate() → fetchTransactions(period) → reportData.
+     * Generates the report data from the database.
+     */
     public void generate() {
         // SD12 step 4: ExportReport calls Report.generate()
         this.report = new Report(userId, startDate, endDate);
@@ -77,7 +95,9 @@ public class ExportReport {
         }
     }
 
-    // SD12 step 8: formatData() — formats to PDF/CSV/Excel
+    /**
+     * SD12 step 8: formatData() — formats to PDF/CSV/Excel.
+     */
     public void formatData() {
         System.out.println("\n--- Exported Report (" + format.toUpperCase() + ") ---");
         System.out.println("Period: " + startDate + " to " + endDate);
@@ -115,33 +135,60 @@ public class ExportReport {
         }
     }
 
-    // SD12 steps 9–10: download() — initiates file download
+    /**
+     * SD12 steps 9–10: download() — initiates file download.
+     */
     public void download() {
         System.out.println("\nFile 'report." + format.toLowerCase()
                          + "' downloaded successfully!");
     }
 
     // Getters
+
+    /**
+     * Gets the format of the report.
+     * @return The format (e.g., PDF, CSV).
+     */
     public String getFormat() {
         return format;
     }
 
+    /**
+     * Gets the start date of the report period.
+     * @return The start date.
+     */
     public LocalDate getStartDate() {
         return startDate;
     }
 
+    /**
+     * Gets the end date of the report period.
+     * @return The end date.
+     */
     public LocalDate getEndDate() {
         return endDate;
     }
 
+    /**
+     * Checks if transactions are included.
+     * @return true if transactions are included.
+     */
     public boolean isIncludeTransactions() {
         return includeTransactions;
     }
 
+    /**
+     * Checks if budgets are included.
+     * @return true if budgets are included.
+     */
     public boolean isIncludeBudgets() {
         return includeBudgets;
     }
 
+    /**
+     * Checks if financial goals are included.
+     * @return true if goals are included.
+     */
     public boolean isIncludeGoals() {
         return includeGoals;
     }

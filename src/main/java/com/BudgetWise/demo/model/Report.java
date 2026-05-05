@@ -5,12 +5,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Represents a financial report for a specific period.
+ */
 public class Report {
     private int userId;
     private LocalDate startDate;
     private LocalDate endDate;
     private List<Transaction> transactions;
 
+    /**
+     * Constructor for creating a Report instance.
+     * 
+     * @param userId The ID of the user.
+     * @param startDate The start date of the report.
+     * @param endDate The end date of the report.
+     */
     public Report(int userId, LocalDate startDate, LocalDate endDate) {
         this.userId = userId;
         this.startDate = startDate;
@@ -68,6 +78,11 @@ public class Report {
         }
     }
 
+    /**
+     * Gets the list of transactions included in this report.
+     * 
+     * @return A list of transactions.
+     */
     public List<Transaction> getTransactions() {
         return transactions;
     }

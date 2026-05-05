@@ -32,6 +32,15 @@ public class FinancialGoal {
     private String status; // "active" | "completed"
     private double progressPercent; // 0.0 – 100.0 (computed, not stored)
 
+    /**
+     * Constructor for creating a new Financial Goal.
+     * 
+     * @param userId The ID of the user.
+     * @param name The name of the goal.
+     * @param targetAmount The target amount to reach.
+     * @param deadline The deadline to achieve the goal.
+     * @param initialContribution Initial amount put towards the goal.
+     */
     public FinancialGoal(int userId, String name, double targetAmount,
             LocalDate deadline, double initialContribution) {
         this.goalId = 0; // assigned after save()
@@ -49,7 +58,17 @@ public class FinancialGoal {
         updateProgress();
     }
 
-    /** Private constructor used when loading rows from the DB. */
+    /** 
+     * Private constructor used when loading rows from the DB. 
+     *
+     * @param goalId The goal ID.
+     * @param userId The user ID.
+     * @param name The goal name.
+     * @param targetAmount The target amount.
+     * @param currentAmount The current amount saved.
+     * @param deadline The deadline.
+     * @param status The status of the goal.
+     */
     private FinancialGoal(int goalId, int userId, String name, double targetAmount,
             double currentAmount, LocalDate deadline, String status) {
         this.goalId = goalId;
@@ -67,6 +86,8 @@ public class FinancialGoal {
     /**
      * Adds a monetary contribution toward the goal and persists to DB.
      * Automatically calls updateProgress() and checks completion.
+     * 
+     * @param amount The amount to contribute.
      */
     public void addContribution(double amount) {
         if (amount <= 0) {
@@ -83,6 +104,8 @@ public class FinancialGoal {
 
     /**
      * Returns how much needs to be saved per month to hit the target on time.
+     * 
+     * @return The required monthly saving amount.
      */
     public double calculateMonthlySaving() {
         double remaining = targetAmount - currentAmount;
@@ -157,6 +180,9 @@ public class FinancialGoal {
 
     /**
      * Loads all goals for a given user from the database.
+     * 
+     * @param userId The ID of the user.
+     * @return A list of FinancialGoal objects.
      */
     public static List<FinancialGoal> loadForUser(int userId) {
         List<FinancialGoal> list = new ArrayList<>();
@@ -199,34 +225,67 @@ public class FinancialGoal {
     }
 
     // Getters
+
+    /**
+     * Gets the goal ID.
+     * @return The goal ID.
+     */
     public int getGoalId() {
         return goalId;
     }
 
+    /**
+     * Gets the user ID associated with the goal.
+     * @return The user ID.
+     */
     public int getUserId() {
         return userId;
     }
 
+    /**
+     * Gets the name of the goal.
+     * @return The goal name.
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Gets the target amount for the goal.
+     * @return The target amount.
+     */
     public double getTargetAmount() {
         return targetAmount;
     }
 
+    /**
+     * Gets the current amount saved.
+     * @return The current amount.
+     */
     public double getCurrentAmount() {
         return currentAmount;
     }
 
+    /**
+     * Gets the deadline for the goal.
+     * @return The deadline.
+     */
     public LocalDate getDeadline() {
         return deadline;
     }
 
+    /**
+     * Gets the status of the goal.
+     * @return The status.
+     */
     public String getStatus() {
         return status;
     }
 
+    /**
+     * Gets the current progress percentage towards the goal.
+     * @return The progress percentage.
+     */
     public double getProgressPercent() {
         return progressPercent;
     }

@@ -6,7 +6,16 @@ import java.time.YearMonth;
 import java.util.List;
 import java.util.Scanner;
 
+/**
+ * The main entry point for the BudgetWise application.
+ * Handles the command-line interface and user interaction loop.
+ */
 public class Main {
+    /**
+     * Main method that initializes the database and starts the application loop.
+     * 
+     * @param args Command line arguments.
+     */
     public static void main(String[] args) {
         DatabaseManager.initializeDatabase();
         AuthService auth = new AuthService();

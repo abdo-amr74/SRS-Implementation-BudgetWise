@@ -3,6 +3,9 @@ package com.BudgetWise.demo.model;
 import com.BudgetWise.demo.database.DatabaseManager;
 import java.sql.*;
 
+/**
+ * Represents a user of the BudgetWise application.
+ */
 public class User {
     private int userId; // Added userId field for DB reference
     private String fullName;
@@ -10,6 +13,13 @@ public class User {
     private String password;
     private double balance; // Added balance field
 
+    /**
+     * Constructor for creating a new user.
+     * 
+     * @param fullName The full name of the user.
+     * @param email The user's email.
+     * @param password The user's password.
+     */
     public User(String fullName, String email, String password) {
         this.fullName = fullName;
         this.email = email;
@@ -17,6 +27,14 @@ public class User {
         this.balance = 0.0; // Starts at zero
     }
 
+    /**
+     * Constructor for loading an existing user from the database.
+     * 
+     * @param userId The unique user ID.
+     * @param fullName The full name of the user.
+     * @param email The user's email.
+     * @param password The user's password.
+     */
     public User(int userId, String fullName, String email, String password) {
         this.userId = userId;
         this.fullName = fullName;
@@ -59,26 +77,53 @@ public class User {
     }
 
     // Getters and Setters
+
+    /**
+     * Gets the user ID.
+     * @return The user ID.
+     */
     public int getUserId() {
         return userId;
     }
 
+    /**
+     * Gets the user's full name.
+     * @return The full name.
+     */
     public String getFullName() {
         return fullName;
     }
 
+    /**
+     * Gets the user's email.
+     * @return The email.
+     */
     public String getEmail() {
         return email;
     }
 
+    /**
+     * Gets the user's password.
+     * @return The password.
+     */
     public String getPassword() {
         return password;
     }
 
+    /**
+     * Gets the in-memory balance.
+     * @return The balance.
+     */
     public double getBalance() {
         return balance;
     }
 
+    /**
+     * Updates the in-memory balance.
+     * 
+     * @param amount The amount to add or subtract.
+     * @param type The type ("Income" or "Expense").
+     */
     public void updateBalance(double amount, String type) {
         if (type.equalsIgnoreCase("Income")) {
             this.balance += amount;

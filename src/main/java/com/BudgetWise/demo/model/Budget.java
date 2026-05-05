@@ -29,8 +29,17 @@ public class Budget {
     private LocalDate startDate;
     private LocalDate endDate;
     private double alertThreshold; // e.g. 0.90 for 90%
-    // Constructor for creating a new budget
 
+    /**
+     * Constructor for creating a new budget.
+     * 
+     * @param userId The ID of the user creating the budget.
+     * @param name The category name of the budget (e.g., "Food").
+     * @param limitAmount The maximum amount allowed for this budget.
+     * @param startDate The start date of the budget period.
+     * @param endDate The end date of the budget period.
+     * @param alertThreshold The percentage threshold to trigger an alert (e.g., 0.90).
+     */
     public Budget(int userId, String name, double limitAmount,
             LocalDate startDate, LocalDate endDate, double alertThreshold) {
         this.budgetID = 0;
@@ -115,6 +124,12 @@ public class Budget {
     /**
      * Edits an existing budget's details and persists to DB.
      * SD4: edit()
+     * 
+     * @param newName The new category name.
+     * @param newLimit The new budget limit.
+     * @param newStart The new start date.
+     * @param newEnd The new end date.
+     * @param newThreshold The new alert threshold percentage.
      */
     public void edit(String newName, double newLimit, LocalDate newStart,
             LocalDate newEnd, double newThreshold) {
@@ -195,6 +210,8 @@ public class Budget {
     /**
      * Calculates the remaining budget amount.
      * Class diagram: calcRemaining()
+     * 
+     * @return The remaining amount.
      */
     public double calcRemaining() {
         return limitAmount - spentAmount;
@@ -235,6 +252,9 @@ public class Budget {
     // Static DB Queries
     /**
      * Loads all budgets for a given user.
+     * 
+     * @param userId The ID of the user.
+     * @return A list of Budget objects belonging to the user.
      */
     public static List<Budget> loadForUser(int userId) {
         List<Budget> list = new ArrayList<>();
@@ -264,6 +284,10 @@ public class Budget {
     /**
      * Finds a budget matching a category name for the current date range.
      * Used by Transaction.save() to auto-update budget spentAmount (SD5).
+     * 
+     * @param userId The ID of the user.
+     * @param category The category name to search for.
+     * @return The Budget object if found, null otherwise.
      */
     public static Budget findByCategory(int userId, String category) {
         String today = LocalDate.now().toString();
@@ -295,6 +319,9 @@ public class Budget {
 
     /**
      * Finds a budget by its ID.
+     * 
+     * @param budgetId The ID of the budget.
+     * @return The Budget object if found, null otherwise.
      */
     public static Budget findById(int budgetId) {
         String sql = "SELECT id, userId, name, amount, spentAmount, startDate, endDate, alertThreshold "
@@ -354,6 +381,9 @@ public class Budget {
 
     /**
      * Builds a text-based progress bar for console display.
+     * 
+     * @param pct The percentage of the progress.
+     * @return A string representing the progress bar.
      */
     private String buildProgressBar(double pct) {
         int filled = (int) Math.min(20, (pct / 100) * 20);
@@ -378,34 +408,67 @@ public class Budget {
     }
 
     // Getters
+
+    /**
+     * Gets the unique ID of the budget.
+     * @return The budget ID.
+     */
     public int getBudgetID() {
         return budgetID;
     }
 
+    /**
+     * Gets the ID of the user owning the budget.
+     * @return The user ID.
+     */
     public int getUserId() {
         return userId;
     }
 
+    /**
+     * Gets the category name of the budget.
+     * @return The category name.
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Gets the budget limit amount.
+     * @return The limit amount.
+     */
     public double getLimitAmount() {
         return limitAmount;
     }
 
+    /**
+     * Gets the total amount spent within the budget period.
+     * @return The spent amount.
+     */
     public double getSpentAmount() {
         return spentAmount;
     }
 
+    /**
+     * Gets the start date of the budget.
+     * @return The start date.
+     */
     public LocalDate getStartDate() {
         return startDate;
     }
 
+    /**
+     * Gets the end date of the budget.
+     * @return The end date.
+     */
     public LocalDate getEndDate() {
         return endDate;
     }
 
+    /**
+     * Gets the alert threshold percentage.
+     * @return The alert threshold.
+     */
     public double getAlertThreshold() {
         return alertThreshold;
     }

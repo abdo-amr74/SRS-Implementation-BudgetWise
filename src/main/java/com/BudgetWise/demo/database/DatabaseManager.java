@@ -5,10 +5,19 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+/**
+ * Manages database connections and initialization.
+ */
 public class DatabaseManager {
         private static final String DB_URL = "jdbc:sqlite:budgetwise.db";
         private static Connection connection;
 
+        /**
+         * Gets a connection to the SQLite database.
+         * 
+         * @return The database Connection.
+         * @throws SQLException If a database access error occurs.
+         */
         public static Connection getConnection() throws SQLException {
                 if (connection == null || connection.isClosed()) {
                         connection = DriverManager.getConnection(DB_URL);
@@ -16,6 +25,9 @@ public class DatabaseManager {
                 return connection;
         }
 
+        /**
+         * Initializes the database schema, creating necessary tables if they don't exist.
+         */
         public static void initializeDatabase() {
                 try (Connection conn = getConnection();
                                 Statement stmt = conn.createStatement()) {

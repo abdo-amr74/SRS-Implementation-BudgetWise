@@ -19,6 +19,14 @@ public class Transaction {
     private String note;
     private String date;
 
+    /**
+     * Constructor to create a new Transaction.
+     * 
+     * @param userId The ID of the user.
+     * @param type The transaction type ("Income" or "Expense").
+     * @param amount The transaction amount.
+     * @param category The category of the transaction.
+     */
     public Transaction(int userId, String type, double amount, String category) {
         if (amount <= 0) {
             throw new IllegalArgumentException("Amount must be a positive number greater than 0.");
@@ -44,6 +52,10 @@ public class Transaction {
 
     /**
      * Loads transactions for a specific user filtered by category.
+     * 
+     * @param userId The ID of the user.
+     * @param category The category name to filter by.
+     * @return A list of matching transactions.
      */
     public static List<Transaction> loadByCategory(int userId, String category) {
         List<Transaction> list = new ArrayList<>();
@@ -68,6 +80,10 @@ public class Transaction {
 
     /**
      * Updates an existing transaction and synchronizes changes with linked budgets.
+     * 
+     * @param newAmount The new transaction amount.
+     * @param newCategory The new transaction category.
+     * @return true if successful, false otherwise.
      */
     public boolean edit(double newAmount, String newCategory) {
         if (newAmount <= 0)
@@ -103,6 +119,9 @@ public class Transaction {
     /**
      * Removes a transaction by ID and restores the spent amount to the relevant
      * budget.
+     * 
+     * @param transactionId The ID of the transaction to delete.
+     * @return true if successful, false otherwise.
      */
     public static boolean delete(int transactionId) {
         Transaction t = loadById(transactionId);
@@ -126,6 +145,9 @@ public class Transaction {
         return true;
     }
 
+    /**
+     * Saves a new transaction to the database.
+     */
     public void save() {
         String sql = "INSERT INTO transactions (userId, amount, type, category, note, date) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = DatabaseManager.getConnection();
@@ -144,6 +166,12 @@ public class Transaction {
         }
     }
 
+    /**
+     * Loads a transaction by its ID.
+     * 
+     * @param id The transaction ID.
+     * @return The Transaction object, or null if not found.
+     */
     public static Transaction loadById(int id) {
         String sql = "SELECT * FROM transactions WHERE id=?";
         try (Connection conn = DatabaseManager.getConnection();
@@ -158,6 +186,14 @@ public class Transaction {
         return null;
     }
 
+    /**
+     * Loads transactions for a user within a specific date range.
+     * 
+     * @param userId The user ID.
+     * @param startDate The start date string.
+     * @param endDate The end date string.
+     * @return A list of transactions.
+     */
     public static List<Transaction> loadForUser(int userId, String startDate, String endDate) {
         List<Transaction> list = new ArrayList<>();
         String sql = "SELECT * FROM transactions WHERE userId=? AND date BETWEEN ? AND ? ORDER BY date DESC";
@@ -179,6 +215,12 @@ public class Transaction {
         return list;
     }
 
+    /**
+     * Loads all transactions for a user.
+     * 
+     * @param userId The user ID.
+     * @return A list of all transactions.
+     */
     public static List<Transaction> loadAllForUser(int userId) {
         List<Transaction> list = new ArrayList<>();
         String sql = "SELECT * FROM transactions WHERE userId=? ORDER BY date DESC";
@@ -194,22 +236,42 @@ public class Transaction {
         return list;
     }
 
+    /**
+     * Returns a formatted detailed string for the transaction.
+     * @return The formatted string.
+     */
     public String toDetailString() {
         return String.format("  #%d [%s] %.2f EGP - %s (%s)", transactionId, type, amount, category, date);
     }
 
+    /**
+     * Gets the user ID.
+     * @return The user ID.
+     */
     public int getUserId() {
         return userId;
     }
 
+    /**
+     * Gets the transaction type.
+     * @return The type.
+     */
     public String getType() {
         return type;
     }
 
+    /**
+     * Gets the transaction amount.
+     * @return The amount.
+     */
     public double getAmount() {
         return amount;
     }
 
+    /**
+     * Gets the transaction category.
+     * @return The category.
+     */
     public String getCategory() {
         return category;
     }

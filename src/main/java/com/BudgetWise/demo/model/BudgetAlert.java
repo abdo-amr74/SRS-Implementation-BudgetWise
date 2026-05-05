@@ -25,7 +25,14 @@ public class BudgetAlert {
     private LocalDateTime triggeredAt;
     private String message;
 
-    // Constructor
+    /**
+     * Private constructor for creating a BudgetAlert instance.
+     * 
+     * @param budgetId The ID of the budget that triggered the alert.
+     * @param userId The ID of the user owning the budget.
+     * @param percentageReached The percentage of the budget limit reached.
+     * @param message The alert message describing the threshold crossed.
+     */
     private BudgetAlert(int budgetId, int userId, double percentageReached, String message) {
         this.alertID = 0;
         this.budgetId = budgetId;
@@ -38,6 +45,11 @@ public class BudgetAlert {
     /**
      * Generates a BudgetAlert and sends it.
      * SD5: Budget -> BudgetAlert.generate() -> send() -> Notification.send()
+     * 
+     * @param budget The budget that triggered the alert.
+     * @param percentageReached The percentage of the threshold reached (e.g., 0.8 for 80%).
+     * @param message The descriptive message for the alert.
+     * @return The newly generated BudgetAlert object.
      */
     public static BudgetAlert generate(Budget budget, double percentageReached, String message) {
         BudgetAlert alert = new BudgetAlert(
@@ -79,6 +91,11 @@ public class BudgetAlert {
         Notification.send(userId, message, "Budget", budgetId);
     }
 
+    /**
+     * Returns a string representation of the BudgetAlert.
+     * 
+     * @return A formatted string detailing the alert ID, percentage, message, and trigger time.
+     */
     @Override
     public String toString() {
         String time = triggeredAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
@@ -87,26 +104,57 @@ public class BudgetAlert {
     }
 
     // Getters
+
+    /**
+     * Gets the unique ID of the alert.
+     * 
+     * @return The alert ID.
+     */
     public int getAlertID() {
         return alertID;
     }
 
+    /**
+     * Gets the ID of the associated budget.
+     * 
+     * @return The budget ID.
+     */
     public int getBudgetId() {
         return budgetId;
     }
 
+    /**
+     * Gets the ID of the user who owns the budget.
+     * 
+     * @return The user ID.
+     */
     public int getUserId() {
         return userId;
     }
 
+    /**
+     * Gets the percentage of the budget reached.
+     * 
+     * @return The percentage reached.
+     */
     public double getPercentageReached() {
         return percentageReached;
     }
 
+    /**
+     * Gets the timestamp when the alert was triggered.
+     * 
+     * @return The triggered timestamp.
+     */
     public LocalDateTime getTriggeredAt() {
         return triggeredAt;
     }
 
+    /**
+     * Gets the alert message.
+     * 
+     * @return The alert message.
+     */
     public String getMessage() {
         return message;
     }
